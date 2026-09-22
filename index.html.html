@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Comparador de Precios</title>
+<style>
+  :root{
+    --paper: #EEF3EC;
+    --paper-card: #F8FBF6;
+    --ink: #1E362F;
+    --ink-soft: #4B6259;
+    --rule: rgba(30,54,47,0.16);
+    --rule-strong: rgba(30,54,47,0.32);
+    --gold: #B8863B;
+    --gold-bg: #FBF1DD;
+    --red: #A23B3B;
+    --red-bg: #F7E7E5;
+    --green-tag: #2E6B52;
+    --green-tag-bg: #E1EFE6;
+    --font-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--rule) 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--font-sans);
+    padding:18px;
+    min-height:100vh;
+  }
+  .sheet{
+    max-width:900px;
+    margin:0 auto;
+  }
+  header.ticket{
+    background:var(--paper-card);
+    border:1px solid var(--rule-strong);
+    border-radius:4px;
+    padding:22px 24px 20px;
+    margin-bottom:18px;
+    position:relative;
+    box-shadow: 0 1px 0 var(--rule-strong);
+  }
+  header.ticket::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:4px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 10px, transparent 10px 18px);
+    opacity:0.35;
+    border-radius:4px 4px 0 0;
+  }
+  h1{
+    font-family:var(--font-serif);
+    font-size:1.7rem;
+    margin:6px 0 4px;
+    letter-spacing:0.2px;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    margin:0;
+    max-width:60ch;
+  }
+  .stamp-mark{
+    position:absolute;
+    top:18px; right:20px;
+    width:54px; height:54px;
+    border:2px solid var(--gold);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-8deg);
+    color:var(--gold);
+    font-family:var(--font-serif);
+    font-weight:bold;
+    font-size:0.62rem;
+    text-align:center;
+    line-height:1.05;
+    opacity:0.85;
+  }
+  section.card{
+    background:var(--paper-card);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  section.card h2{
+    font-family:var(--font-serif);
+    font-size:1.1rem;
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--rule);
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px 16px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .field.full{grid-column: 1 / -1;}
+  label{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  input[type=text], input[type=number]{
+    font-family:var(--font-sans);
+    font-size:0.95rem;
+    padding:9px 10px;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus{
+    outline:2px solid var(--green-tag);
+    outline-offset:1px;
+  }
+  .toggle-row{
+    display:flex;
+    gap:8px;
+  }
+  .toggle-btn{
+    flex:1;
+    padding:9px 10px;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    cursor:pointer;
+  }
+  .toggle-btn.active-si{
+    background:var(--green-tag-bg);
+    color:var(--green-tag);
+    border-color:var(--green-tag);
+    font-weight:600;
+  }
+  .toggle-btn.active-no{
+    background:var(--red-bg);
+    color:var(--red);
+    border-color:var(--red);
+    font-weight:600;
+  }
+  .actions-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:16px;
+    gap:10px;
+  }
+  button.primary{
+    background:var(--ink);
+    color:var(--paper-card);
+    border:none;
+    padding:11px 20px;
+    border-radius:3px;
+    font-size:0.95rem;
+    cursor:pointer;
+    font-family:var(--font-sans);
+  }
+  button.primary:active{transform:translateY(1px);}
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--rule-strong);
+    color:var(--ink-soft);
+    padding:10px 16px;
+    border-radius:3px;
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .tab-btn{
+    padding:9px 16px;
+    border:1px solid var(--rule-strong);
+    background:transparent;
+    color:var(--ink-soft);
+    border-radius:3px;
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+  .tab-btn.active{
+    background:var(--ink);
+    color:var(--paper-card);
+    border-color:var(--ink);
+  }
+  .search-row{
+    margin-bottom:14px;
+  }
+  .search-row input{
+    width:100%;
+  }
+  .group{
+    margin-bottom:22px;
+  }
+  .group:last-child{margin-bottom:0;}
+  .group-title{
+    font-family:var(--font-serif);
+    font-size:1.02rem;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.9rem;
+  }
+  thead th{
+    text-align:left;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    font-weight:600;
+    padding:6px 8px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+  tbody td{
+    padding:9px 8px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr.best td{
+    background:var(--gold-bg);
+  }
+  .price-cell{
+    font-family:var(--font-mono);
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .badge{
+    display:inline-block;
+    font-size:0.68rem;
+    padding:3px 8px;
+    border-radius:20px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .badge.si{background:var(--green-tag-bg);color:var(--green-tag);}
+  .badge.no{background:var(--red-bg);color:var(--red);}
+  .badge.mejor{
+    background:var(--gold);
+    color:#fff;
+    margin-left:6px;
+  }
+  .analysis{
+    margin-top:8px;
+    font-size:0.86rem;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding-left:2px;
+  }
+  .del-btn{
+    background:transparent;
+    border:none;
+    color:var(--red);
+    cursor:pointer;
+    font-size:0.85rem;
+    text-decoration:underline;
+    padding:0;
+  }
+  .empty-state{
+    text-align:center;
+    padding:34px 10px;
+    color:var(--ink-soft);
+  }
+  .empty-state .glyph{
+    font-size:1.8rem;
+    display:block;
+    margin-bottom:8px;
+    opacity:0.6;
+  }
+  .history-row{
+    display:grid;
+    grid-template-columns: 90px 1fr 1fr auto auto;
+    gap:10px;
+    align-items:center;
+    padding:10px 6px;
+    border-bottom:1px solid var(--rule);
+    font-size:0.87rem;
+  }
+  .history-row .date{
+    font-family:var(--font-mono);
+    font-size:0.76rem;
+    color:var(--ink-soft);
+  }
+  .history-row .prod{font-weight:600;}
+  .history-row .meta{color:var(--ink-soft);font-size:0.82rem;}
+  .status-msg{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    margin-top:10px;
+    min-height:1.1em;
+  }
+  .status-msg.error{color:var(--red);}
+  footer.note{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.76rem;
+    margin-top:6px;
+    padding-bottom:10px;
+  }
+
+  /* Mobile: cards instead of table */
+  @media (max-width: 640px){
+    .form-grid{grid-template-columns: 1fr;}
+    table, thead{display:none;}
+    tbody, tr, td{display:block;width:100%;}
+    tbody tr{
+      border:1px solid var(--rule);
+      border-radius:4px;
+      margin-bottom:10px;
+      padding:6px 4px;
+    }
+    tbody tr.best{border-color:var(--gold);}
+    tbody td{
+      border-bottom:none;
+      padding:4px 8px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+    tbody td::before{
+      content: attr(data-label);
+      font-size:0.72rem;
+      color:var(--ink-soft);
+      font-weight:600;
+      flex-shrink:0;
+    }
+    .history-row{
+      grid-template-columns: 1fr;
+      gap:3px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="ticket">
+    <div class="stamp-mark">MEJOR<br>PRECIO</div>
+    <h1>Comparador de precios</h1>
+    <p class="subtitle">Anota lo que te cotizan por producto: empresa, descripción, precio y si incluye garantía. Se guarda solo y queda en tu historial.</p>
+  </header>
+
+  <section class="card">
+    <h2>Nueva cotización</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="f-producto">Producto a comparar</label>
+        <input type="text" id="f-producto" placeholder="Ej: Refrigeradora 300L">
+      </div>
+      <div class="field">
+        <label for="f-empresa">Empresa</label>
+        <input type="text" id="f-empresa" placeholder="Ej: Tienda Norte">
+      </div>
+      <div class="field full">
+        <label for="f-descripcion">Descripción</label>
+        <input type="text" id="f-descripcion" placeholder="Marca, modelo, condiciones de entrega, etc.">
+      </div>
+      <div class="field">
+        <label for="f-precio">Precio (S/)</label>
+        <input type="number" id="f-precio" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label>¿Da garantía?</label>
+        <div class="toggle-row">
+          <button type="button" class="toggle-btn" id="btn-si" onclick="setGarantia(true)">Sí</button>
+          <button type="button" class="toggle-btn" id="btn-no" onclick="setGarantia(false)">No</button>
+        </div>
+      </div>
+    </div>
+    <div class="actions-row">
+      <button class="ghost" onclick="limpiarFormulario()">Limpiar</button>
+      <button class="primary" onclick="agregarCotizacion()">Agregar cotización</button>
+    </div>
+    <div id="status" class="status-msg"></div>
+  </section>
+
+  <section class="card">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-comparar" onclick="cambiarTab('comparar')">Comparar</button>
+      <button class="tab-btn" id="tab-historial" onclick="cambiarTab('historial')">Historial</button>
+    </div>
+    <div class="search-row">
+      <input type="text" id="buscador" placeholder="Buscar por producto o empresa..." oninput="render()">
+    </div>
+    <div id="vista-comparar"></div>
+    <div id="vista-historial" style="display:none;"></div>
+  </section>
+
+  <div class="actions-row" style="justify-content:center;">
+    <button class="ghost" onclick="vaciarTodo()">Vaciar historial completo</button>
+  </div>
+
+  <footer class="note">Tus datos se guardan de forma privada en tu cuenta y están disponibles tanto en PC como en el celular.</footer>
+</div>
+
+<script>
+let entradas = [];
+let garantiaSeleccionada = null;
+let tabActual = 'comparar';
+const STORAGE_KEY = 'comparador-precios:entradas';
+
+function setStatus(msg, isError){
+  const el = document.getElementById('status');
+  el.textContent = msg || '';
+  el.className = 'status-msg' + (isError ? ' error' : '');
+}
+
+function setGarantia(valor){
+  garantiaSeleccionada = valor;
+  document.getElementById('btn-si').classList.toggle('active-si', valor === true);
+  document.getElementById('btn-no').classList.toggle('active-no', valor === false);
+}
+
+function limpiarFormulario(){
+  document.getElementById('f-producto').value='';
+  document.getElementById('f-empresa').value='';
+  document.getElementById('f-descripcion').value='';
+  document.getElementById('f-precio').value='';
+  setGarantia(null);
+  setStatus('');
+}
+
+function formatoPrecio(n){
+  return 'S/ ' + Number(n).toLocaleString('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function formatoFecha(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-PE', {day:'2-digit', month:'short', year:'numeric'}) + ' ' +
+         d.toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function cargarEntradas(){
+  setStatus('Cargando historial...');
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    entradas = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    entradas = [];
+  }
+  setStatus('');
+  render();
+}
+
+async function guardarEntradas(){
+  try{
+    const res = await window.storage.set(STORAGE_KEY, JSON.stringify(entradas), false);
+    if(!res){
+      setStatus('No se pudo guardar. Intenta de nuevo.', true);
+    }
+  }catch(e){
+    setStatus('Error al guardar: ' + e.message, true);
+  }
+}
+
+async function agregarCotizacion(){
+  const producto = document.getElementById('f-producto').value.trim();
+  const empresa = document.getElementById('f-empresa').value.trim();
+  const descripcion = document.getElementById('f-descripcion').value.trim();
+  const precioRaw = document.getElementById('f-precio').value;
+  const precio = parseFloat(precioRaw);
+
+  if(!producto || !empresa || precioRaw === '' || isNaN(precio) || precio < 0){
+    setStatus('Completa al menos producto, empresa y un precio válido.', true);
+    return;
+  }
+  if(garantiaSeleccionada === null){
+    setStatus('Indica si la empresa da garantía o no.', true);
+    return;
+  }
+
+  const nueva = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    producto, empresa, descripcion,
+    precio, garantia: garantiaSeleccionada,
+    fecha: new Date().toISOString()
+  };
+  entradas.push(nueva);
+  await guardarEntradas();
+  limpiarFormulario();
+  setStatus('Cotización agregada.');
+  render();
+}
+
+async function eliminarEntrada(id){
+  entradas = entradas.filter(e => e.id !== id);
+  await guardarEntradas();
+  render();
+}
+
+async function vaciarTodo(){
+  if(!confirm('¿Seguro que quieres borrar todo el historial de cotizaciones? Esta acción no se puede deshacer.')) return;
+  entradas = [];
+  await guardarEntradas();
+  render();
+}
+
+function cambiarTab(tab){
+  tabActual = tab;
+  document.getElementById('tab-comparar').classList.toggle('active', tab==='comparar');
+  document.getElementById('tab-historial').classList.toggle('active', tab==='historial');
+  document.getElementById('vista-comparar').style.display = tab==='comparar' ? 'block':'none';
+  document.getElementById('vista-historial').style.display = tab==='historial' ? 'block':'none';
+  render();
+}
+
+function filtrar(lista){
+  const q = document.getElementById('buscador').value.trim().toLowerCase();
+  if(!q) return lista;
+  return lista.filter(e =>
+    e.producto.toLowerCase().includes(q) ||
+    e.empresa.toLowerCase().includes(q) ||
+    (e.descripcion||'').toLowerCase().includes(q)
+  );
+}
+
+function render(){
+  if(tabActual === 'comparar') renderComparar();
+  else renderHistorial();
+}
+
+function renderComparar(){
+  const cont = document.getElementById('vista-comparar');
+  const lista = filtrar(entradas);
+
+  if(lista.length === 0){
+    cont.innerHTML = '<div class="empty-state"><span class="glyph">&#128203;</span>Aún no hay cotizaciones que mostrar. Agrega la primera arriba.</div>';
+    return;
+  }
+
+  const grupos = {};
+  lista.forEach(e => {
+    const key = e.producto.trim().toLowerCase();
+    if(!grupos[key]) grupos[key] = { nombre: e.producto.trim(), items: [] };
+    grupos[key].items.push(e);
+  });
+
+  let html = '';
+  Object.values(grupos).forEach(grupo => {
+    const items = [...grupo.items].sort((a,b) => a.precio - b.precio);
+    const minPrecio = items[0].precio;
+    const mejores = items.filter(i => i.precio === minPrecio);
+    const mejorConGarantia = items.find(i => i.garantia && i.precio === minPrecio);
+
+    html += `<div class="group">
+      <h3 class="group-title">${escapeHtml(grupo.nombre)}</h3>
+      <table>
+        <thead><tr>
+          <th>Empresa</th><th>Descripción</th><th>Precio</th><th>Garantía</th><th></th>
+        </tr></thead>
+        <tbody>`;
+    items.forEach(e => {
+      const esMejor = e.precio === minPrecio;
+      html += `<tr class="${esMejor ? 'best' : ''}">
+        <td data-label="Empresa">${escapeHtml(e.empresa)}</td>
+        <td data-label="Descripción">${escapeHtml(e.descripcion || '—')}</td>
+        <td data-label="Precio" class="price-cell">${formatoPrecio(e.precio)}${esMejor ? '<span class="badge mejor">MEJOR</span>' : ''}</td>
+        <td data-label="Garantía"><span class="badge ${e.garantia ? 'si':'no'}">${e.garantia ? 'Sí':'No'}</span></td>
+        <td data-label="Acción"><button class="del-btn" onclick="eliminarEntrada('${e.id}')">Eliminar</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+
+    let analisis = `El precio más bajo es de <strong>${escapeHtml(mejores[0].empresa)}</strong> con ${formatoPrecio(minPrecio)}`;
+    analisis += mejores[0].garantia ? ', e incluye garantía.' : ', pero no incluye garantía.';
+    if(!mejores[0].garantia && mejorConGarantia){
+      analisis += ` Si prefieres garantía al mejor precio, considera <strong>${escapeHtml(mejorConGarantia.empresa)}</strong> con ${formatoPrecio(mejorConGarantia.precio)}.`;
+    } else if(!mejores[0].garantia && !mejorConGarantia && items.some(i=>i.garantia)){
+      const conG = items.filter(i=>i.garantia).sort((a,b)=>a.precio-b.precio)[0];
+      analisis += ` La opción más barata con garantía es <strong>${escapeHtml(conG.empresa)}</strong> con ${formatoPrecio(conG.precio)}.`;
+    }
+    html += `<p class="analysis">${analisis}</p></div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+function renderHistorial(){
+  const cont = document.getElementById('vista-historial');
+  const lista = filtrar(entradas).slice().sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  if(lista.length === 0){
+    cont.innerHTML = '<div class="empty-state"><span class="glyph">&#128337;</span>Todavía no registraste ninguna cotización.</div>';
+    return;
+  }
+
+  let html = '';
+  lista.forEach(e => {
+    html += `<div class="history-row">
+      <div class="date">${formatoFecha(e.fecha)}</div>
+      <div class="prod">${escapeHtml(e.producto)}</div>
+      <div class="meta">${escapeHtml(e.empresa)} · ${formatoPrecio(e.precio)} · ${e.garantia ? 'con garantía' : 'sin garantía'}</div>
+      <div class="meta">${escapeHtml(e.descripcion || '')}</div>
+      <div><button class="del-btn" onclick="eliminarEntrada('${e.id}')">Eliminar</button></div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+cargarEntradas();
+</script>
+</body>
+</html>
